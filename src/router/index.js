@@ -56,6 +56,18 @@ export const constantRoutes = [
   },
 
   {
+    path: '/announcement',
+    component: Layout,
+    redirect: '/announcement',
+    children: [{
+      path: '',
+      name: 'Announcement',
+      component: () => import('@/views/announcement/index'),
+      meta: { title: '公告信息', icon: 'dashboard' }
+    }]
+  },
+
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',

@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { getCode, login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
@@ -28,6 +28,18 @@ const mutations = {
 }
 
 const actions = {
+  // 验证码
+  getCaptcha({ commit }, userInfo) {
+    return new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      getCode({ username: userInfo.username }).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
   // user login
   login({ commit }, userInfo) {
     const { username, password } = userInfo

@@ -1,8 +1,16 @@
 import request from '@/utils/request'
 
+export function getCode(data) {
+  return request({
+    url: '/rest/admin/getCaptcha',
+    method: 'get',
+    params: data
+  })
+}
+
 export function login(data) {
   return request({
-    url: '/vue-admin-template/user/login',
+    url: '/rest/admin/login',
     method: 'post',
     data
   })
