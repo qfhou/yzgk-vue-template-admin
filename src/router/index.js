@@ -68,6 +68,18 @@ export const constantRoutes = [
   },
 
   {
+    path: '/password',
+    component: Layout,
+    redirect: '/password',
+    children: [{
+      path: '',
+      name: 'Password',
+      component: () => import('@/views/password/index'),
+      meta: { title: '修改密码', icon: 'dashboard' }
+    }]
+  },
+
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',

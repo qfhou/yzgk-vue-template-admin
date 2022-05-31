@@ -45,6 +45,8 @@
 
 <script>
 
+import { Message } from 'element-ui'
+
 export default {
   name: 'Login',
   data() {
@@ -94,12 +96,24 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || '/' })
-            this.loading = false
-          }).catch(() => {
-            this.loading = false
+          this.$store.dispatch('user/login', this.loginForm).then((response) => {
+            if (response.data.status === 200) {
+              this.$router.push({ path: this.redirect || '/' })
+            } else {
+              Message({
+                message: response.data.message,
+                type: 'error',
+                duration: 5 * 1000
+              })
+            }
+          }).catch((error) => {
+            Message({
+              message: error.data.message,
+              type: 'error',
+              duration: 5 * 1000
+            })
           })
+          this.loading = false
         } else {
           console.log('error submit!!')
           return false
