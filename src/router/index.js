@@ -68,6 +68,42 @@ export const constantRoutes = [
   },
 
   {
+    path: '/student',
+    component: Layout,
+    redirect: '/student',
+    children: [{
+      path: '',
+      name: 'Student',
+      component: () => import('@/views/student/index'),
+      meta: { title: '学员信息', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/organization',
+    component: Layout,
+    redirect: '/organization',
+    children: [{
+      path: '',
+      name: 'Organization',
+      component: () => import('@/views/organization/index'),
+      meta: { title: '组织管理', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/planCategory',
+    component: Layout,
+    redirect: '/planCategory',
+    children: [{
+      path: '',
+      name: 'PlanCategory',
+      component: () => import('@/views/planCategory/index'),
+      meta: { title: '计划类别', icon: 'dashboard' }
+    }]
+  },
+
+  {
     path: '/password',
     component: Layout,
     redirect: '/password',
