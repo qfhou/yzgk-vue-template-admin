@@ -35,6 +35,7 @@
       element-loading-text="Loading"
       :data="list"
       :current-page.sync="currentPage"
+      :row-style="{height: '30px'}"
     >
       <el-table-column label="序号" type="index" width="50" align="center" />
       <!-- <el-table-column label="序号" width="100">
@@ -65,7 +66,7 @@
       </el-table-column>
     </el-table>
     <div class="pagination-container">
-      <el-pagination :page-sizes="[5, 9, 15]" layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+      <el-pagination :page-sizes="[10, 15, 20]" layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     </div>
 
     <el-dialog :visible.sync="dialogVisibleGet" title="公告">
@@ -117,7 +118,7 @@ export default {
       queryTitle: null,
       listLoading: true,
       currentPage: 1,
-      pagesize: 5,
+      pagesize: 10,
       total: 0,
       dialogVisibleGet: false,
       dialogVisibleSave: false,
@@ -213,6 +214,7 @@ export default {
     },
     handleSizeChange(val) {
       this.pagesize = val
+      this.handleFilter()
     },
     handleCurrentChange(val) {
       this.currentPage = val
@@ -248,6 +250,7 @@ export default {
   /*这里是3行*/
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+  margin: 0px;
 }
 
 .filter-container {
