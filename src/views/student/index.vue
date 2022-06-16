@@ -26,10 +26,11 @@
                 查询
               </el-button>
               <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click.native.prevent="showSaveHandler()">
-                批量导入
-              </el-button>
-              <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click.native.prevent="showSaveHandler()">
                 添加
+              </el-button>
+              <input ref="excel-upload-input" class="excel-upload-input" type="file" accept=".xlsx, .xls" @change="handleClick">
+              <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-upload" @click="handleUpload">
+                批量导入
               </el-button>
             </div>
           </div>
@@ -111,7 +112,8 @@
 <script>
 import { mapGetters } from 'vuex'
 import request from '@/utils/request'
-// import { Message } from 'element-ui'
+import Axios from 'axios'
+import { Message } from 'element-ui'
 
 export default {
   name: 'Dashboard',
@@ -387,6 +389,32 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val
       this.handleFilter()
+    },
+    handleUpload() {
+      this.$refs['excel-upload-input'].click()
+    },
+    handleClick(e) {
+      const formData = new FormData()
+      formData.append('file', e.target.files[0])
+      const url = this.$store.state.settings.urlPath + '/rest/file/batch/import/student'
+      const config = {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+      Axios.post(url, formData, config).then(function(response) {
+        if (response.data.status !== 200) {
+          Message({
+            message: response.data.message,
+            type: 'error',
+            duration: 5 * 1000
+          })
+        } else {
+          Message({
+            message: '导入成功',
+            type: 'info',
+            duration: 5 * 1000
+          })
+        }
+      })
     }
   }
 }
@@ -431,5 +459,10 @@ export default {
 .pagination-container {
   background: #fff;
   padding: 32px 16px;
+}
+
+.excel-upload-input{
+  display: none;
+  z-index: -9999;
 }
 </style>
