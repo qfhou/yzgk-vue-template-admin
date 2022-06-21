@@ -68,6 +68,18 @@ export const constantRoutes = [
   },
 
   {
+    path: '/question',
+    component: Layout,
+    redirect: '/question',
+    children: [{
+      path: '',
+      name: 'Question',
+      component: () => import('@/views/question/index'),
+      meta: { title: '考题管理', icon: 'dashboard' }
+    }]
+  },
+
+  {
     path: '/student',
     component: Layout,
     redirect: '/student',

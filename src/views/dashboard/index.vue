@@ -17,6 +17,24 @@
           <!-- <el-button type="success" size="mini" @click.native.prevent="showGetHandler(node, data)">查看</el-button> -->
         </template>
       </el-cascader>
+      <el-input
+        v-model="queryRealName"
+        placeholder="考题题目"
+        style="width: 200px;margin-right: 15px;"
+        class="filter-item"
+        @keyup.enter.native="handleFilter"
+      />
+      <el-button class="filter-item" type="primary" icon="el-icon-search" @click.native="handleFilter">
+        查询
+      </el-button>
+      <el-select v-model="value" filterable placeholder="请选择">
+        <el-option
+          v-for="item in options2"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </div>
   </div>
 </template>
@@ -25,6 +43,23 @@
 export default {
   data() {
     return {
+      options2: [{
+        value: '选项1',
+        label: '黄金糕'
+      }, {
+        value: '选项2',
+        label: '双皮奶'
+      }, {
+        value: '选项3',
+        label: '蚵仔煎'
+      }, {
+        value: '选项4',
+        label: '龙须面'
+      }, {
+        value: '选项5',
+        label: '北京烤鸭'
+      }],
+      value: '选项2',
       id: [],
       optionProps: {
         expandTrigger: 'hover',

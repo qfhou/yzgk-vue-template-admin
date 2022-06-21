@@ -325,7 +325,7 @@ export default {
       this.getOrganizationList()
       if (item === undefined) {
         this.dialogTitleSave = '新增学员'
-        this.id = []
+        this.id = null
         this.itemSave.id = null
         this.itemSave.realName = null
         this.itemSave.username = null
