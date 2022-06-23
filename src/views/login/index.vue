@@ -87,7 +87,15 @@ export default {
     },
     handleCaptcha() {
       this.$store.dispatch('user/getCaptcha', this.loginForm).then((response) => {
-        this.loginForm.captcha = response.data.data.code
+        if (response.data.status === 200) {
+          this.loginForm.captcha = response.data.data.code
+        } else {
+          Message({
+            message: response.data.message,
+            type: 'error',
+            duration: 5 * 1000
+          })
+        }
       }).catch((error) => {
         alert(error)
       })
