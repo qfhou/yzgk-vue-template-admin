@@ -26,10 +26,6 @@
             <el-button class="filter-item" type="primary" icon="el-icon-edit" @click.native.prevent="showSaveHandler()">
               添加
             </el-button>
-            <input ref="excel-upload-input" class="excel-upload-input" type="file" accept=".xlsx, .xls" @change="handleClick">
-            <el-button class="filter-item" type="primary" icon="el-icon-upload" @click="handleUpload">
-              批量导入
-            </el-button>
           </div>
         </el-col>
         <el-col :span="4">
@@ -46,16 +42,21 @@
       :row-style="{height: '30px'}"
     >
       <el-table-column label="序号" type="index" width="50" align="center" />
-      <el-table-column prop="title" label="考试题目" align="center">
+      <el-table-column prop="title" label="课件标题" align="center">
         <template slot-scope="scope">
           <p class="showOverTooltip">{{ scope.row.title }}</p>
         </template>
       </el-table-column>
-      <el-table-column prop="categoryName" label="题目类型" width="150" align="center" />
-      <el-table-column prop="grade" label="题目分数" width="150" align="center" />
+      <el-table-column prop="content" label="课件描述" align="center">
+        <template slot-scope="scope">
+          <p class="showOverTooltip">{{ scope.row.content }}</p>
+        </template>
+      </el-table-column>
       <el-table-column prop="planCategoryName" label="计划类别" width="150" align="center" />
+      <el-table-column prop="fileTypeName" label="课件类型" width="150" align="center" />
       <el-table-column label="操作" align="center" width="230">
         <template slot-scope="scope">
+          <el-button type="success" size="mini" @click.native.prevent="showSaveHandler(scope.row)">查看</el-button>
           <el-button type="primary" size="mini" @click.native.prevent="showSaveHandler(scope.row)">编辑</el-button>
           <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" icon="el-icon-info" icon-color="red" title="确定删除吗？" @onConfirm="deleteHandler(scope.row)">
             <el-button slot="reference" type="danger" size="mini" style="margin-left:10px">删除</el-button>
@@ -67,19 +68,14 @@
       <el-pagination :page-sizes="[10, 15, 20]" layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     </div>
 
-    <el-dialog :visible.sync="dialogVisibleSave" :title="dialogTitleSave" @close="closeDialogSave">
+    <el-dialog :visible.sync="dialogVisibleSave" :title="dialogTitleSave" @close="closeDialogSave" @opened="openedDialogSave">
       <div>
         <el-form ref="itemSave" :model="itemSave" :rules="itemSaveFormRules" class="login-form" status-icon label-width="150px">
-          <el-form-item label="考试题目：" prop="title">
+          <el-form-item label="课件标题：" prop="title">
             <el-input v-model="itemSave.title" />
           </el-form-item>
-          <el-form-item label="题目类型：" prop="category">
-            <el-cascader v-model="categoryId" style="width:100% " :show-all-levels="false" clearable filterable placeholder="搜索：" :options="categoryOptions" :props="categoryOptionProps" @change="categoryCascaderPostChange">
-              <template slot-scope="{ node, data }">
-                <span>{{ data.name }}</span>
-                <span v-if="!node.isLeaf"> ({{ data.child.length }}) </span>
-              </template>
-            </el-cascader>
+          <el-form-item label="课件描述：" prop="content">
+            <el-input v-model="itemSave.content" />
           </el-form-item>
           <el-form-item label="计划类别：" prop="planCategory">
             <el-cascader v-model="planCategoryId" style="width:100% " :show-all-levels="false" clearable filterable placeholder="搜索：" :options="options" :props="optionProps" @change="planCategoryCascaderPostChange">
@@ -89,23 +85,38 @@
               </template>
             </el-cascader>
           </el-form-item>
-          <el-form-item label="选项A：" prop="optionA">
-            <el-input v-model="itemSave.optionA" />
+          <el-form-item label="课件类型：" prop="fileType">
+            <el-cascader v-model="fileTypeId" style="width:100% " clearable filterable placeholder="搜索：" :options="fileTypeOptions" :props="fileTypeOptionsProps" @change="fileTypeCascaderPostChange">
+              <template slot-scope="{ node, data }">
+                <span>{{ data.name }}</span>
+                <span v-if="!node.isLeaf"> ({{ data.child.length }}) </span>
+              </template>
+            </el-cascader>
           </el-form-item>
-          <el-form-item label="选项B：" prop="optionB">
-            <el-input v-model="itemSave.optionB" />
-          </el-form-item>
-          <el-form-item label="选项C：" prop="optionC">
-            <el-input v-model="itemSave.optionC" />
-          </el-form-item>
-          <el-form-item label="选项D：" prop="optionD">
-            <el-input v-model="itemSave.optionD" />
-          </el-form-item>
-          <el-form-item label="题目答案：" prop="answer">
-            <el-input v-model="itemSave.answer" placeholder="多选题答案用逗号隔开，如A,D" />
-          </el-form-item>
-          <el-form-item label="考题分数：" prop="grade">
-            <el-input v-model="itemSave.grade" />
+          <el-form-item label="课件文件：" prop="optionA">
+            <input ref="file-upload-input" class="file-upload-input" type="file" accept=".xlsx, .xls" @change="fileHandleClick">
+            <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-upload" @click="fileHandleUpload">
+              上传
+            </el-button>
+            <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-upload" @click="fileHandleDownLoad">
+              下载
+            </el-button>
+            <el-image
+              v-show="imageShow"
+              ref="image"
+              style="width: 150px; height: 150px"
+              :src="itemSave.visitUrl"
+              fit="cover"
+              :preview-src-list="imageSrcList"
+            />
+            <video-player
+              v-show="playerShow"
+              ref="videoPlayer"
+              style="width: 150px; height: 112.5px"
+              class="video-player vjs-custom-skin"
+              :playsinline="true"
+              :options="playerOptions"
+            />
           </el-form-item>
         </el-form>
       </div>
@@ -119,11 +130,15 @@
 </template>
 <script>
 import request from '@/utils/request'
-// import Axios from 'axios'
 import { Message } from 'element-ui'
+import { videoPlayer } from 'vue-video-player'
+import 'video.js/dist/video-js.css'
 
 export default {
   name: 'Dashboard',
+  components: {
+    videoPlayer
+  },
   data() {
     return {
       list: null,
@@ -144,61 +159,82 @@ export default {
         label: 'name',
         children: 'child'
       },
-      categoryId: [],
-      categoryOptions: [{
+      fileTypeId: [],
+      fileTypeOptions: [{
         id: 1,
-        name: '单选题'
+        name: '视频',
+        accept: '.mp4,.mov,.qlv,.wmv,.avi,.mkv,.f4v,.rmvb'
       }, {
         id: 2,
-        name: '多选题'
+        name: 'PPT',
+        accept: '.pptx,.ppt'
+      }, {
+        id: 3,
+        name: '图片',
+        accept: '.jpg,.png,.jpeg,.gif'
+      }, {
+        id: 4,
+        name: 'pdf',
+        accept: '.pdf'
+      }, {
+        id: 5,
+        name: 'word',
+        accept: '.doc,.docx'
       }],
-      categoryOptionProps: {
+      fileTypeOptionsProps: {
         expandTrigger: 'hover',
         value: 'id',
         label: 'name',
         children: 'child'
       },
       planCategoryId: [],
+      formData: null,
       itemSave: {
         id: null,
         title: null,
-        category: null,
+        content: null,
         planCategory: null,
-        optionA: null,
-        optionB: null,
-        optionC: null,
-        optionD: null,
-        answer: null,
-        grade: null
+        fileType: null,
+        filePath: null
       },
       itemSaveFormRules: {
         title: [
-          { required: true, message: '请输入考题名称', trigger: 'blur' }
+          { required: true, message: '课件标题', trigger: 'blur' }
         ],
-        category: [
-          { required: true, message: '请选择题目类型', trigger: 'change' }
+        content: [
+          { required: true, message: '课件描述', trigger: 'blur' }
         ],
         planCategory: [
           { required: true, message: '请选择计划类别', trigger: 'change' }
         ],
-        optionA: [
-          { required: true, message: '请输入选项A', trigger: 'blur' }
-        ],
-        optionB: [
-          { required: true, message: '请输入选项B', trigger: 'blur' }
-        ],
-        optionC: [
-          { required: true, message: '请输入选项C', trigger: 'blur' }
-        ],
-        optionD: [
-          { required: true, message: '请输入选项D', trigger: 'blur' }
-        ],
-        answer: [
-          { required: true, message: '请输入题目答案', trigger: 'blur' }
-        ],
-        grade: [
-          { required: true, message: '考题分数', trigger: 'blur' }
+        fileType: [
+          { required: true, message: '课件类型', trigger: 'change' }
         ]
+      },
+      imageShow: false,
+      imageSrcList: [],
+      playerShow: false,
+      playerOptions: {
+        playbackRates: [0.5, 1.0, 1.5, 2.0], // 可选的播放速度
+        autoplay: false, // 如果为true,浏览器准备好时开始回放。
+        muted: false, // 默认情况下将会消除任何音频。
+        loop: false, // 是否视频一结束就重新开始。
+        preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+        language: 'zh-CN',
+        aspectRatio: '4:3', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+        sources: [{
+          type: 'video/mp4', // 类型
+          src: 'http://localhost/video/2022/6/26/FD79EE53B4B946B9A277DF510DF18CA1.mp4' // url地址
+        }],
+        poster: '', // 封面地址
+        notSupportedMessage: '此视频暂无法播放，请稍后再试', // 允许覆盖Video.js无法播放媒体源时显示的默认信息。
+        controlBar: {
+          timeDivider: true, // 当前时间和持续时间的分隔符
+          durationDisplay: true, // 显示持续时间
+          remainingTimeDisplay: false, // 是否显示剩余时间功能
+          fullscreenToggle: true // 是否显示全屏按钮
+        }
       }
     }
   },
@@ -209,7 +245,7 @@ export default {
   methods: {
     getList(params) {
       request({
-        url: '/rest/question/list',
+        url: '/rest/coursework/list',
         method: 'get',
         params
       }).then(response => {
@@ -228,17 +264,69 @@ export default {
     },
     saveData(data) {
       return request({
-        url: '/rest/question/save',
+        url: '/rest/coursework/save',
         method: 'post',
         data
       })
     },
     deleteHandler(item) {
       request({
-        url: '/rest/question/delete/' + item.id,
+        url: '/rest/coursework/delete/' + item.id,
         method: 'post'
       }).then(response => {
-        this.handleFilter()
+        if (response.data.status !== 200) {
+          Message({
+            message: response.data.message,
+            type: 'error',
+            duration: 5 * 1000
+          })
+        } else {
+          this.handleFilter()
+        }
+      })
+    },
+    fileHandleUpload() {
+      this.$refs['file-upload-input'].click()
+    },
+    fileHandleClick(e) {
+      this.formData = new FormData()
+      this.formData.append('file', e.target.files[0])
+    },
+    fileHandleDownLoad() {
+      window.open(this.itemSave.visitUrl)
+    },
+    saveHandler() {
+      this.$refs.itemSave.validate(valid => {
+        if (valid) {
+          request({
+            url: '/rest/file/upload',
+            method: 'post',
+            data: this.formData,
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }).then(response => {
+            if (response.data.status !== 200) {
+              Message({
+                message: response.data.message,
+                type: 'error',
+                duration: 5 * 1000
+              })
+            } else {
+              this.saveData(
+                {
+                  id: this.itemSave.id && this.itemSave.id,
+                  title: this.itemSave.title,
+                  content: this.itemSave.content,
+                  planCategory: this.itemSave.planCategory,
+                  fileType: this.itemSave.fileType,
+                  filePath: response.data.data.fileKey
+                }
+              ).then(response => {
+                this.handleFilter()
+              })
+              this.dialogVisibleSave = false
+            }
+          })
+        }
       })
     },
     handleFilter() {
@@ -283,18 +371,20 @@ export default {
       }
       this.handleFilter()
     },
-    categoryCascaderPostChange(categoryId) {
-      if (categoryId.length > 0) {
-        this.itemSave.category = categoryId[0]
-      } else {
-        this.itemSave.category = null
-      }
-    },
     planCategoryCascaderPostChange(planCategoryId) {
       if (planCategoryId.length > 0) {
         this.itemSave.planCategory = planCategoryId[2]
       } else {
         this.itemSave.planCategory = null
+      }
+    },
+    fileTypeCascaderPostChange(fileTypeId) {
+      if (fileTypeId.length > 0) {
+        const accept = this.fileTypeOptions[fileTypeId - 1].accept
+        this.itemSave.fileType = fileTypeId[0]
+        this.$set(this.$refs['file-upload-input'], 'accept', accept)
+      } else {
+        this.itemSave.fileType = null
       }
     },
     showSaveHandler(item) {
@@ -304,54 +394,46 @@ export default {
         this.planCategoryId = null
         this.itemSave.id = null
         this.itemSave.title = null
-        this.itemSave.category = null
+        this.itemSave.content = null
         this.itemSave.planCategory = null
-        this.itemSave.optionA = null
-        this.itemSave.optionB = null
-        this.itemSave.optionC = null
-        this.itemSave.optionD = null
-        this.itemSave.answer = null
-        this.itemSave.grade = null
       } else {
         this.dialogTitleSave = '编辑'
         this.itemSave = item
-        this.categoryId = this.itemSave.category
+        this.imageSrcList = null
+        this.imageSrcList = []
+        this.imageSrcList[0] = this.itemSave.visitUrl
+
         var parents = []
         this.findParent(parents, this.itemSave.planCategory, this.options)
         this.planCategoryId[2] = this.itemSave.planCategory
         this.planCategoryId[1] = parents[0]
         this.planCategoryId[0] = parents[1]
+
+        this.fileTypeId = null
+        this.fileTypeId = []
+        this.fileTypeId[0] = this.itemSave.fileType
+
+        if (this.fileTypeId[0] === 1) { // 视频
+          this.playerShow = true
+        } else if (this.fileTypeId[0] === 3) { // 图片
+          this.imageShow = true
+        }
       }
       this.dialogVisibleSave = true
-    },
-    saveHandler() {
-      this.$refs.itemSave.validate(valid => {
-        if (valid) {
-          this.saveData(
-            {
-              id: this.itemSave.id && this.itemSave.id,
-              title: this.itemSave.title,
-              category: this.itemSave.category,
-              planCategory: this.itemSave.planCategory,
-              optionA: this.itemSave.optionA,
-              optionB: this.itemSave.optionB,
-              optionC: this.itemSave.optionC,
-              optionD: this.itemSave.optionD,
-              answer: this.itemSave.answer,
-              grade: this.itemSave.grade
-            }
-          ).then(response => {
-            this.handleFilter()
-          })
-          this.dialogVisibleSave = false
-        }
-      })
     },
     closeDialogSave() {
       this.handleFilter()
       this.id = []
-      this.categoryId = []
       this.planCategoryId = []
+      this.fileTypeId = []
+      this.imageShow = false
+      this.playerShow = false
+    },
+    openedDialogSave() {
+      if (this.itemSave !== null) {
+        var acceptValue = this.fileTypeOptions[this.itemSave.fileType - 1].accept
+        this.$set(this.$refs['file-upload-input'], 'accept', acceptValue)
+      }
     },
     handleSizeChange(val) {
       this.pagesize = val
@@ -360,34 +442,6 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val
       this.handleFilter()
-    },
-    handleUpload() {
-      this.$refs['excel-upload-input'].click()
-    },
-    handleClick(e) {
-      const formData = new FormData()
-      formData.append('file', e.target.files[0])
-      request({
-        url: '/rest/file/batch/import/question',
-        method: 'post',
-        data: formData,
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }).then(response => {
-        if (response.data.status !== 200) {
-          Message({
-            message: response.data.message,
-            type: 'error',
-            duration: 5 * 1000
-          })
-        } else {
-          Message({
-            message: '导入成功',
-            type: 'info',
-            duration: 5 * 1000
-          })
-          this.handleFilter()
-        }
-      })
     }
   }
 }
@@ -436,7 +490,7 @@ export default {
   padding: 32px 16px;
 }
 
-.excel-upload-input{
+.file-upload-input{
   display: none;
   z-index: -9999;
 }

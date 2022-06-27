@@ -56,14 +56,14 @@ export const constantRoutes = [
   },
 
   {
-    path: '/announcement',
+    path: '/coursework',
     component: Layout,
-    redirect: '/announcement',
+    redirect: '/coursework',
     children: [{
       path: '',
-      name: 'Announcement',
-      component: () => import('@/views/announcement/index'),
-      meta: { title: '公告信息', icon: 'dashboard' }
+      name: 'Coursework',
+      component: () => import('@/views/coursework/index'),
+      meta: { title: '课件管理', icon: 'dashboard' }
     }]
   },
 
@@ -76,6 +76,18 @@ export const constantRoutes = [
       name: 'Question',
       component: () => import('@/views/question/index'),
       meta: { title: '考题管理', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/announcement',
+    component: Layout,
+    redirect: '/announcement',
+    children: [{
+      path: '',
+      name: 'Announcement',
+      component: () => import('@/views/announcement/index'),
+      meta: { title: '公告信息', icon: 'dashboard' }
     }]
   },
 

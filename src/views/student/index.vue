@@ -112,7 +112,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import request from '@/utils/request'
-import Axios from 'axios'
 import { Message } from 'element-ui'
 
 export default {
@@ -396,11 +395,12 @@ export default {
     handleClick(e) {
       const formData = new FormData()
       formData.append('file', e.target.files[0])
-      const url = this.$store.state.settings.urlPath + '/rest/file/batch/import/student'
-      const config = {
+      request({
+        url: '/rest/file/batch/import/student',
+        method: 'post',
+        data: formData,
         headers: { 'Content-Type': 'multipart/form-data' }
-      }
-      Axios.post(url, formData, config).then(function(response) {
+      }).then(response => {
         if (response.data.status !== 200) {
           Message({
             message: response.data.message,
@@ -413,6 +413,7 @@ export default {
             type: 'info',
             duration: 5 * 1000
           })
+          this.handleFilter()
         }
       })
     }
